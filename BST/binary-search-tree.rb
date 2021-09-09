@@ -60,20 +60,18 @@ class Tree
   end
 
   def insert(value, node = @root)
-    current_node = node
-
-    if current_node.data > value
-      if current_node.left_child.nil?
+    if node.data > value
+      if node.left_child.nil?
         new_node = Node.new(value)
-        current_node.left_child = new_node
+        node.left_child = new_node
       end
-      insert(value, current_node.left_child)
-    elsif current_node.data < value
-      if current_node.right_child.nil?
+      insert(value, node.left_child)
+    elsif node.data < value
+      if node.right_child.nil?
         new_node = Node.new(value)
-        current_node.right_child = new_node
+        node.right_child = new_node
       end
-      insert(value, current_node.right_child)
+      insert(value, node.right_child)
     else
       return
     end
