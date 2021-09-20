@@ -28,7 +28,7 @@ class ConnectFour
   def end_message(result)
     case result
     when "tie"
-      print("Tie")
+      print("Tie\n")
     else
       print("#{result} wins\n")
     end
