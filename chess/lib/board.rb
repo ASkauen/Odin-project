@@ -13,14 +13,14 @@ class Board
 
   def new_board
     out = {}
-    8.times do |row|
-      8.times do |col|
+    8.downto(1) do |row|
+      1.upto(8) do |col|
         b_or_w = if row.odd?
                    col.odd? ? '■'.black : '■'
                  else
                    col.even? ? '■'.black : '■'
                  end
-        out.store([row + 1, col + 1], b_or_w)
+        out.store([row, col], b_or_w)
       end
     end
     out
@@ -31,12 +31,13 @@ class Board
       c = 1
       row.split('').each do |s|
         if 'kqrbnp'.include?(s.downcase)
-          @board[[r + 1, c]] = PIECES[s.to_sym]
+          @board[[8 - r, c]] = PIECES[s.to_sym]
           c += 1
         end
         c += s.to_i
       end
     end
+    @board[[1, 1]] = "1"
   end
 
   def split_to_rows
