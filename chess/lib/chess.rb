@@ -9,22 +9,18 @@ class Chess
   def initialize
     @board = EMPTY_BOARD
     @fen = Fen.new
-    p @fen
   end
 
   def update_board
-    r = 1
-    @fen.placement.split('/').each do |row|
+    @fen.placement.split('/').each_with_index do |row, r|
       c = 1
       row.split('').each do |s|
         if 'kqrbnp'.include?(s.downcase)
-          @board[[r, c]] = PIECES[s.to_sym]
+          @board[[r + 1, c]] = PIECES[s.to_sym]
           c += 1
-        else
-          c += s.to_i
         end
+        c += s.to_i
       end
-      r += 1
     end
   end
 
@@ -39,9 +35,12 @@ class Chess
 
   def print_board
     puts ''
-    puts split_to_rows.map { |row| (row[1].map { |_xy, val| val }).join(' ') }
+    puts(split_to_rows.map { |row| (row[1].map { |_xy, val| val }).join(' ') })
     puts ''
   end
 end
 
 game = Chess.new
+
+game.update_board
+game.print_board
