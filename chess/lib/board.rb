@@ -2,16 +2,17 @@
 
 require_relative './fen'
 require_relative './resources'
+require_relative './pieces'
 
 class Board
   include Resources
 
   def initialize
-    @board = empty_board
+    @board = start_pos
     @fen = Fen.new
   end
 
-  def empty_board
+  def start_pos
     out = {}
     8.downto(1) do |row|
       1.upto(8) do |col|
