@@ -1,9 +1,8 @@
 # frozen_string_literal: true
-
 require 'require_all'
 require_all 'lib'
 
-class Chess
+class Board
   include Resources
 
   def initialize
@@ -39,8 +38,3 @@ class Chess
     puts ''
   end
 end
-
-game = Chess.new
-
-game.update_board
-game.print_board
