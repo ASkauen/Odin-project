@@ -20,7 +20,7 @@ class Board
                  else
                    col.even? ? '■'.black : '■'
                  end
-        out.store([row, col], b_or_w)
+        out.store([col, row], b_or_w)
       end
     end
     out
@@ -31,20 +31,19 @@ class Board
       c = 1
       row.split('').each do |s|
         if 'kqrbnp'.include?(s.downcase)
-          @board[[8 - r, c]] = PIECES[s.to_sym]
+          @board[[c, 8 - r]] = PIECES[s.to_sym]
           c += 1
         end
         c += s.to_i
       end
     end
-    @board[[1, 1]] = "1"
   end
 
   def split_to_rows
     out = {}
     @board.each do |xy, val|
-      out[xy[0]] = out[xy[0]].nil? ? {} : out[xy[0]]
-      out[xy[0]].store(xy, val)
+      out[xy[1]] = out[xy[1]].nil? ? {} : out[xy[1]]
+      out[xy[1]].store(xy, val)
     end
     out
   end
