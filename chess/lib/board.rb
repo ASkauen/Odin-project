@@ -7,18 +7,18 @@ class Board
   include Resources
 
   def initialize
-    @board = new_board
+    @board = empty_board
     @fen = Fen.new
   end
 
-  def new_board
+  def empty_board
     out = {}
     8.downto(1) do |row|
       1.upto(8) do |col|
-        b_or_w = if row.odd?
-                   col.odd? ? '■'.black : '■'
+        b_or_w = if row.even?
+                   (col.odd? ? W_SQUARE : B_SQUARE)
                  else
-                   col.even? ? '■'.black : '■'
+                   (col.even? ? W_SQUARE : B_SQUARE)
                  end
         out.store([col, row], b_or_w)
       end
