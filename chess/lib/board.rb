@@ -1,6 +1,7 @@
 # frozen_string_literal: true
-require 'require_all'
-require_all 'lib'
+
+require_relative './fen'
+require_relative './resources'
 
 class Board
   include Resources
