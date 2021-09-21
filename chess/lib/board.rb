@@ -7,8 +7,23 @@ class Board
   include Resources
 
   def initialize
-    @board = EMPTY_BOARD
+    @board = new_board
     @fen = Fen.new
+  end
+
+  def new_board
+    out = {}
+    8.times do |row|
+      8.times do |col|
+        b_or_w = if row.odd?
+                   col.odd? ? '■'.black : '■'
+                 else
+                   col.even? ? '■'.black : '■'
+                 end
+        out.store([row + 1, col + 1], b_or_w)
+      end
+    end
+    out
   end
 
   def update_board
