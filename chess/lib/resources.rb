@@ -15,9 +15,10 @@ module Resources
     n: "♞".black,
     p: "♟".black,
   }
-  SQUARES = {white: '■', black: '■'.black}
+  W_SQUARE = '■'
+  B_SQUARE = '■'.black
   STARTING_FEN = {
-    placement: "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR",
+    placement: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR",
     turn: "w",
     castling: "KQkq",
     en_passant: "-",
