@@ -3,7 +3,7 @@
 require 'colorize'
 
 module Resources
-  PIECES = {
+  ICONS = {
     K: '♚',
     Q: '♛',
     R: '♜',
