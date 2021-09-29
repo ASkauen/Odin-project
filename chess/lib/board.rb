@@ -5,7 +5,8 @@ require_relative './resources'
 require_relative './pieces'
 
 class Board
-  attr_accessor :active_pieces, :white_pieces, :black_pieces, :board
+  attr_accessor :active_pieces, :board
+  attr_reader :white_pieces, :black_pieces, :white_king, :black_king
 
   include Resources
 
@@ -21,14 +22,39 @@ class Board
       p: Pawn
     }.freeze
     @active_pieces = create_pieces
-    @white_pieces = @active_pieces.select {|p| 'KQRBNP'.include?(p.id)}
-    @black_pieces = @active_pieces.select {|p| 'kqrbnp'.include?(p.id)}
+    @white_pieces = @active_pieces.select { |p| 'KQRBNP'.include?(p.id) }
+    @black_pieces = @active_pieces.select { |p| 'kqrbnp'.include?(p.id) }
+    @white_king = @white_pieces.select { |p| p.id == 'K' }[0]
+    @black_king = @black_pieces.select { |p| p.id == 'k' }[0]
   end
 
   def start_pos; end
 
   def get_piece(pos)
-    (@active_pieces.select {|p| p.position == pos})[0]
+    (@active_pieces.select { |p| p.position == pos })[0]
+  end
+
+  def checkmate?
+    [@white_king, @black_king].each do |k|
+      return true if k.in_check? && k.remove_check_moves.empty? && !check_blockable?(k.color)
+    end
+    false
+  end
+
+  def check_blockable?(color)
+    pieces = color == 'white' ? @white_pieces : @black_pieces
+    king = color == 'white' ? @white_king : @black_king
+    moves = []
+    (pieces - [king]).each do |p|
+      p.legal_moves.each { |m| moves << m }
+    end
+    moves.uniq.each do |s|
+      @board[s] = 'B'
+      return true unless king.in_check?
+
+      update_board
+    end
+    false
   end
 
   def empty_board
@@ -59,6 +85,18 @@ class Board
       end
     end
     pieces
+  end
+
+  def empty_square?(pos)
+    [W_SQUARE, B_SQUARE].include?(@board[pos])
+  end
+
+  def enemy_piece?(color, pos)
+    if color == 'white'
+      @black_pieces.any? { |p| p.position == pos }
+    else
+      @white_pieces.any? { |p| p.position == pos }
+    end
   end
 
   def update_board
