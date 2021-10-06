@@ -5,7 +5,7 @@ require_relative './resources'
 require_relative './pieces'
 
 class Board
-  attr_accessor :active_pieces, :board
+  attr_accessor :active_pieces, :board, :fen, :black_moves, :white_moves
   attr_reader :white_pieces, :black_pieces, :white_king, :black_king
 
   include Resources
@@ -22,10 +22,7 @@ class Board
       p: Pawn
     }.freeze
     @active_pieces = create_pieces
-    @white_pieces = @active_pieces.select { |p| 'KQRBNP'.include?(p.id) }
-    @black_pieces = @active_pieces.select { |p| 'kqrbnp'.include?(p.id) }
-    @white_king = @white_pieces.select { |p| p.id == 'K' }[0]
-    @black_king = @black_pieces.select { |p| p.id == 'k' }[0]
+    update_board
   end
 
   def start_pos; end
@@ -104,20 +101,32 @@ class Board
     @active_pieces.each do |piece|
       @board[piece.position] = piece.icon
     end
+    update_vars
   end
 
-  def split_to_rows
+  def update_vars
+    @white_pieces = @active_pieces.select { |p| 'KQRBNP'.include?(p.id) }
+    @black_pieces = @active_pieces.select { |p| 'kqrbnp'.include?(p.id) }
+    @white_king = @white_pieces.select { |p| p.id == 'K' }[0]
+    @black_king = @black_pieces.select { |p| p.id == 'k' }[0]
+    @white_moves = {}
+    @white_pieces.each { |p| @white_moves[p.position] = p.legal_moves }
+    @black_moves = {}
+    @black_pieces.each { |p| @black_moves[p.position] = p.legal_moves }
+  end
+
+  def split_to_rows(board)
     out = {}
-    @board.each do |xy, val|
+    board.each do |xy, val|
       out[xy[1]] = out[xy[1]].nil? ? {} : out[xy[1]]
       out[xy[1]].store(xy, val)
     end
     out
   end
 
-  def print_board
+  def print_board(board = @board)
     puts ''
-    puts(split_to_rows.map { |row| (row[1].map { |_xy, val| val }).join(' ') })
+    puts(split_to_rows(board).map { |row| (row[1].map { |_xy, val| val }).join(' ') })
     puts ''
   end
 end

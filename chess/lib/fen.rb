@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require 'json'
 
 class Fen
@@ -14,7 +15,7 @@ class Fen
   end
 
   def load(file_name)
-    file = File.open("./saves/#{file_name}.json", "r")
+    file = File.open("./saves/#{file_name}.json", 'r')
     JSON.parse(file.read).each do |var, value|
       instance_variable_set(var.to_sym, value)
     end
@@ -57,5 +58,9 @@ class Fen
       out << section.join('')
     end
     @placement = out.join('/')
+  end
+
+  def update_en_passant(square)
+    @en_passant = square || '-'
   end
 end
