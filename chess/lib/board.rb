@@ -12,7 +12,7 @@ class Board
 
   def initialize
     @board = empty_board
-    @fen = Fen.new
+    @fen = Fen.new(self)
     @piece_classes = {
       k: King,
       q: Queen,
@@ -22,6 +22,7 @@ class Board
       p: Pawn
     }.freeze
     @active_pieces = create_pieces
+    @fen.set_rooks
     update_board
   end
 
@@ -115,7 +116,7 @@ class Board
     @black_pieces.each { |p| @black_moves[p.position] = p.legal_moves }
   end
 
-  def split_to_rows(board)
+  def split_to_rows(board = @board)
     out = {}
     board.each do |xy, val|
       out[xy[1]] = out[xy[1]].nil? ? {} : out[xy[1]]
