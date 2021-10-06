@@ -53,13 +53,13 @@ class Piece
     moves -= pin_moves(moves)
     if moves.include?(to)
       ep_capture(to) if to == @board.fen.en_passant && @id.downcase == 'p'
-      @board.fen.update_en_passant(get_ep_square(to))
       @board.active_pieces.delete(@board.get_piece(to))
       @position = to
       @has_moved = true
       promotion if @id.downcase == 'p'
       @board.update_board
       @board.print_board
+      @board.fen.update_all(get_ep_square(to))
       puts 'Check' if checking?
     else
       puts "Illegal move #{to}"
