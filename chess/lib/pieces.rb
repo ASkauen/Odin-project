@@ -24,38 +24,36 @@ class King < Piece
     )
   end
 
-  def king_pos
-    if @color == 'white'
-      @board.white_king.position
-    else
-      @board.black_king.position
-    end
-  end
-
   def legal_moves(pos = @position)
     legal = []
     @offsets.each do |offset|
       s_check = [(pos[0] + offset[0]), (pos[1] + offset[1])]
       legal << s_check if @board.empty_square?(s_check) || @board.enemy_piece?(@color, s_check)
     end
-
-    legal
+    legal - check_moves(legal)
   end
 
-  def remove_check_moves
-    legal_moves.reject do |move|
-      in_check?(move)
-    end
-  end
-
-  def in_check?(pos = @position, moves = nil)
+  def check_moves(moves)
     enemy_pieces = @color == 'white' ? @board.black_pieces : @board.white_pieces
-    if moves
-      return true if moves.include?(pos)
-    else
-      enemy_pieces.each do |piece|
-        return true if piece.legal_moves.include?(pos)
-      end
+    enemy_pieces = enemy_pieces.reject {|p| p.id.downcase == 'k'}
+    enemy_moves = []
+    illegal = []
+    moves.each do |move|
+      temp = @position
+      @position = move
+      @board.update_board
+      illegal << move if in_check?
+      @position = temp
+      @board.update_board
+    end
+    illegal
+  end
+
+  def in_check?(pos = @position)
+    enemy_pieces = @color == 'white' ? @board.black_pieces : @board.white_pieces
+    enemy_pieces = enemy_pieces.reject {|p| p.id.downcase == 'k'}
+    enemy_pieces.each do |piece|
+      return true if piece.legal_moves.include?(pos)
     end
     false
   end
@@ -224,28 +222,31 @@ class Pawn < Piece
     end
     legal << left_diag if enemy_pieces.include?(@board.board[left_diag]) || left_diag == @board.fen.en_passant
     legal << right_diag if enemy_pieces.include?(@board.board[right_diag]) || right_diag == @board.fen.en_passant
-    legal << two_move unless @has_moved
+    legal << two_move unless @has_moved || @board.get_piece(two_move)
     legal
   end
 
   def promotion
-    user_input = " "
+    out = " "
     if @color == 'white'
       if @position[1] == 8
-        until 'qrkb'.include?(user_input)
-          puts "Promote to (Q)ueen, (R)ook, (K)night or (B)ishop?:"
-          user_input = gets.chomp.downcase
-        end
+        out = promotion_input
       end
     else
       if @position[1] == 1
-        until 'qrkb'.include?(user_input)
-          puts "Promote to (Q)ueen, (R)ook, (K)night or (B)ishop?:"
-          user_input = gets.chomp.downcase
-        end
+        out = promotion_input
       end
     end
-    promote_piece(user_input) if user_input != " "
+    promote_piece(out) if out != " "
+  end
+
+  def promotion_input
+    user_input = " "
+    until 'qrkb'.include?(user_input)
+      puts "Promote to (Q)ueen, (R)ook, (K)night or (B)ishop?:"
+      user_input = gets.chomp.downcase
+    end
+    user_input
   end
 
   def promote_piece(input)
