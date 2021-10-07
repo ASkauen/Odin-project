@@ -1,6 +1,4 @@
 # frozen_string_literal: true
-require 'deep_clone'
-
 class Piece
   include Resources
   attr_accessor :position
