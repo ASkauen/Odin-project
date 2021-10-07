@@ -81,8 +81,10 @@ class Fen
   end
 
   def update_castling
+    @castling = @castling.gsub('QK', '') if @board.white_king.has_moved
     @castling = @castling.gsub('Q', '') if @QR.has_moved
     @castling = @castling.gsub('K', '') if @KR.has_moved
+    @castling = @castling.gsub('qk', '') if @board.black_king.has_moved
     @castling = @castling.gsub('q', '') if @qr.has_moved
     @castling = @castling.gsub('k', '') if @kr.has_moved
   end
