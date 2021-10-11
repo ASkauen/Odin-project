@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require 'pry'
 require_relative './fen'
 require_relative './resources'
 require_relative './pieces'
@@ -12,7 +13,7 @@ class Board
 
   def initialize
     @board = empty_board
-    @fen = Fen.new
+    @fen = Fen.new(self)
     @piece_classes = {
       k: King,
       q: Queen,
@@ -22,10 +23,69 @@ class Board
       p: Pawn
     }.freeze
     @active_pieces = create_pieces
+    @fen.set_rooks
     update_board
+    update_vars
   end
 
-  def start_pos; end
+  def play
+    until checkmate?
+      puts "Check" if @white_king.in_check? || @black_king.in_check?
+      puts "#{turn} to move."
+      move_to = nil
+      piece_to_move = nil
+      until piece_to_move && move_to
+        piece_to_move = select_piece
+        piece_to_move.show_moves
+        move_to = get_move(piece_to_move)
+      end
+      piece_to_move.move(move_to)
+      update_vars
+    end
+    puts "Checkmate"
+  end
+
+  def turn 
+    @fen.turn == 'w' ? "White" : "Black"
+  end
+
+  def get_move(piece)
+    input = ""
+    until piece.legal_moves.include?(input)
+      return nil if input != ""
+      puts("Select a square to move to (format: xy): ")
+      input = get_input
+      get_piece(input)
+    end
+    input
+  end
+
+  def select_piece
+    input = ""
+    until valid_piece?(input)
+      until valid_piece?(input) 
+        puts "Invalid input." if input != ""
+        puts("Select a piece to move (format: xy): ")
+        input = get_input
+      end
+      moves = get_piece(input).legal_moves
+      if (moves - get_piece(input).pin_moves(moves)).empty?
+        puts "No legal moves." 
+        input = ""
+      end
+    end
+    get_piece(input)
+  end
+
+  def get_input
+    input = gets.chomp
+    [input.split("")[0].to_i, input.split("")[1].to_i]
+  end
+
+  def valid_piece?(input)
+    valid_inputs = @fen.turn == 'w' ? @white_pieces.map {|p| p.position} : @black_pieces.map {|p| p.position}
+    valid_inputs.include?(input)
+  end
 
   def get_piece(pos)
     (@active_pieces.select { |p| p.position == pos })[0]
@@ -33,12 +93,12 @@ class Board
 
   def checkmate?
     [@white_king, @black_king].each do |k|
-      return true if k.in_check? && k.remove_check_moves.empty? && !check_blockable?(k.color)
+      return true if k.in_check? && k.legal_moves.empty? && !check_stoppable?(k.color)
     end
     false
   end
 
-  def check_blockable?(color)
+  def check_stoppable?(color)
     pieces = color == 'white' ? @white_pieces : @black_pieces
     king = color == 'white' ? @white_king : @black_king
     moves = []
@@ -46,10 +106,12 @@ class Board
       p.legal_moves.each { |m| moves << m }
     end
     moves.uniq.each do |s|
-      @board[s] = 'B'
-      return true unless king.in_check?
-
+      piece_at_move_square = get_piece(s)
+      @active_pieces.delete(piece_at_move_square)
+      @board[s] = 'X'
+      king_in_check = king.in_check?
       update_board
+      return true unless king_in_check
     end
     false
   end
@@ -101,7 +163,6 @@ class Board
     @active_pieces.each do |piece|
       @board[piece.position] = piece.icon
     end
-    update_vars
   end
 
   def update_vars
@@ -115,7 +176,7 @@ class Board
     @black_pieces.each { |p| @black_moves[p.position] = p.legal_moves }
   end
 
-  def split_to_rows(board)
+  def split_to_rows(board = @board)
     out = {}
     board.each do |xy, val|
       out[xy[1]] = out[xy[1]].nil? ? {} : out[xy[1]]

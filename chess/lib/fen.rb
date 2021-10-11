@@ -5,13 +5,21 @@ require 'json'
 class Fen
   attr_accessor :placement, :turn, :castling, :en_passant, :half_move, :full_move
 
-  def initialize
+  def initialize(board)
+    @board = board
     @placement = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR'
     @turn = 'w'
     @castling = 'KQkq'
     @en_passant = '-'
     @half_move =  0
     @full_move =  1
+  end
+
+  def set_rooks
+    @QR = @board.get_piece([1, 1])
+    @KR = @board.get_piece([8, 1])
+    @qr = @board.get_piece([8, 1])
+    @kr = @board.get_piece([8, 8])
   end
 
   def load(file_name)
@@ -32,6 +40,14 @@ class Fen
     file.close
   end
 
+  def update_all(ep_square)
+    update_turn
+    update_full_move
+    update_placement
+    update_en_passant(ep_square)
+    update_castling
+  end
+
   def update_turn
     @turn = @turn == 'w' ? 'b' : 'w'
   end
@@ -42,7 +58,7 @@ class Fen
 
   def update_placement
     out = []
-    split_to_rows.each_value do |row|
+    @board.split_to_rows.each_value do |row|
       blank = 0
       section = []
       row.each_value do |p|
@@ -50,7 +66,7 @@ class Fen
           blank += 1
         else
           section << blank if blank.positive?
-          section << PIECES.key(p)
+          section << ICONS.key(p)
           blank = 0
         end
       end
@@ -62,5 +78,14 @@ class Fen
 
   def update_en_passant(square)
     @en_passant = square || '-'
+  end
+
+  def update_castling
+    @castling = @castling.gsub('QK', '') if @board.white_king.has_moved
+    @castling = @castling.gsub('Q', '') if @QR.has_moved
+    @castling = @castling.gsub('K', '') if @KR.has_moved
+    @castling = @castling.gsub('qk', '') if @board.black_king.has_moved
+    @castling = @castling.gsub('q', '') if @qr.has_moved
+    @castling = @castling.gsub('k', '') if @kr.has_moved
   end
 end
