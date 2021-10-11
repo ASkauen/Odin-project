@@ -30,13 +30,11 @@ class King < Piece
       s_check = [(pos[0] + offset[0]), (pos[1] + offset[1])]
       legal << s_check if @board.empty_square?(s_check) || @board.enemy_piece?(@color, s_check)
     end
+    legal += legal_castle_moves unless in_check?
     legal - check_moves(legal)
   end
 
   def check_moves(moves)
-    enemy_pieces = @color == 'white' ? @board.black_pieces : @board.white_pieces
-    enemy_pieces = enemy_pieces.reject {|p| p.id.downcase == 'k'}
-    enemy_moves = []
     illegal = []
     moves.each do |move|
       temp = @position
@@ -56,6 +54,28 @@ class King < Piece
       return true if piece.legal_moves.include?(pos)
     end
     false
+  end
+
+  def legal_castle_moves
+    legal = []
+    rank = @color == 'white' ? 1 : 8
+    legal << [7, rank] if kingside_clear?(rank)
+    legal << [3, rank] if queenside_clear?(rank)
+    legal
+  end
+
+  def kingside_clear?(rank)
+    [[6, rank], [7, rank]].each do |square|
+      return false if @board.get_piece(square) || in_check?(square)
+    end
+    true
+  end
+
+  def queenside_clear?(rank)
+    [[2, rank], [3, rank], [4, rank]].each do |square|
+      return false if @board.get_piece(square) || in_check?(square)
+    end
+    true
   end
 end
 
