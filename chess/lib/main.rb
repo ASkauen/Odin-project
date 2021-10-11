@@ -7,12 +7,10 @@ include Resources
 
 game = Board.new
 
-game.create_pieces
+# game.fen.placement = "rnbqkbnr/ppp1pppp/8/8/8/8/PPP1PPPP/R3KBNR"
+game.active_pieces = game.create_pieces
 game.update_board
+game.update_vars
 game.print_board
 
-game.get_piece([5, 7]).move([5, 5])
-game.get_piece([5, 5]).move([5, 4])
-game.get_piece([5, 4]).move([5, 3])
-game.get_piece([5, 3]).move([4, 2])
-game.get_piece([4, 2]).move([3, 1])
+game.play
