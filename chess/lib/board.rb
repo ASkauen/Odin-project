@@ -6,13 +6,14 @@ require_relative './resources'
 require_relative './pieces'
 
 class Board
-  attr_accessor :active_pieces, :board, :fen, :black_moves, :white_moves
+  attr_accessor :active_pieces, :board, :fen, :black_moves, :white_moves, :previous_positions
   attr_reader :white_pieces, :black_pieces, :white_king, :black_king
 
   include Resources
 
   def initialize
     @board = empty_board
+    @previous_positions = []
     @fen = Fen.new(self)
     @piece_classes = {
       k: King,
@@ -28,9 +29,46 @@ class Board
     update_vars
   end
 
+  def new_or_load
+    puts "1: New game"
+    puts "2: Load game"
+    input = " "
+    until input == "1" || input == "2"
+      input = gets.chomp
+    end
+    if input == "1"
+      play
+    else
+      save_to_load = @fen.get_save_name || play
+      @fen.load((save_to_load))
+      @active_pieces = create_pieces
+      update_board
+      update_vars
+      play
+    end
+  end
+
+  def save_game
+    print("\nName your save: ")
+    filename = gets.chomp.downcase.split(" ").join("_")
+    available_saves = Dir.entries("./saves").select {|s| s.end_with?(".json")}.map {|s| s = s[0...-5]}
+
+    if available_saves.include?("#{filename}")
+        print "\n#{filename}.json already exists, overwrite? (y/n): "
+        overwrite = gets.chomp.downcase
+        unless overwrite == "y"
+            print "\nOverwrite canceled\n"
+        end
+    end
+    @fen.save(filename)
+    print("\nGame saved to #{filename}.json\n")
+    exit
+  end
+
   def play
+    print_board
+    puts "Enter '/save' to save the position"
     until message = game_over_message
-      p @fen.castling, @white_king.has_moved
       puts 'Check' if @white_king.in_check? || @black_king.in_check?
       puts "#{turn} to move."
       move_to = nil
@@ -49,7 +87,10 @@ class Board
   def game_over_message
     message = nil
     checkmate? && message = 'Checkmate'
-    stalemate? && message = 'Stalemate'
+    stalemate? && message = 'Draw: Stalemate'
+    insufficient_material? && message = 'Draw: Insufficient material'
+    fifty_move_rule? && message = "Draw: 50 move rule"
+    repetition? && message = "Draw: Three-fold repetition"
     message
   end
 
@@ -88,6 +129,7 @@ class Board
 
   def get_input
     input = gets.chomp
+    save_game if input.downcase == "/save"
     [input.split('')[0].to_i, input.split('')[1].to_i]
   end
 
@@ -98,6 +140,27 @@ class Board
 
   def get_piece(pos)
     (@active_pieces.select { |p| p.position == pos })[0]
+  end
+
+  def repetition?
+    @previous_positions.count(@previous_positions[-1]) == 3
+  end
+
+  def fifty_move_rule?
+    @fen.half_move >= 100
+  end
+
+  def insufficient_material?
+    return true if @white_pieces.size == 1 && @black_pieces.size == 1
+
+    insufficient = %w[KBkb KNkn KNkb KBkn].map { |s| s.split('').sort.join('') }
+    pieces = @active_pieces.map(&:id).sort.join('')
+    if pieces == 'BKbk'
+      black_bishop_color = (@black_pieces.select { |piece| piece.id == 'b' }[0]).square_color
+      white_bishop_color = (@white_pieces.select { |piece| piece.id == 'B' }[0]).square_color
+      return false if black_bishop_color == white_bishop_color
+    end
+    insufficient.include?(@active_pieces.map(&:id).sort.join(''))
   end
 
   def stalemate?
