@@ -20,7 +20,7 @@ class Fen
   def set_rooks
     @QR = @board.get_piece([1, 1]) || nil
     @KR = @board.get_piece([8, 1]) || nil
-    @qr = @board.get_piece([8, 1]) || nil
+    @qr = @board.get_piece([1, 8]) || nil
     @kr = @board.get_piece([8, 8]) || nil
   end
 
