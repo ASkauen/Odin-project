@@ -30,35 +30,30 @@ class Board
   end
 
   def new_or_load
-    puts "1: New game"
-    puts "2: Load game"
-    input = " "
-    until input == "1" || input == "2"
-      input = gets.chomp
-    end
-    if input == "1"
-      play
+    puts '1: New game'
+    puts '2: Load game'
+    input = ' '
+    input = gets.chomp until %w[1 2].include?(input)
+    if input == '1'
     else
       save_to_load = @fen.get_save_name || play
       @fen.load((save_to_load))
       @active_pieces = create_pieces
       update_board
       update_vars
-      play
     end
+    play
   end
 
   def save_game
     print("\nName your save: ")
-    filename = gets.chomp.downcase.split(" ").join("_")
-    available_saves = Dir.entries("./saves").select {|s| s.end_with?(".json")}.map {|s| s = s[0...-5]}
+    filename = gets.chomp.downcase.split(' ').join('_')
+    available_saves = Dir.entries('./saves').select { |s| s.end_with?('.json') }.map { |s| s = s[0...-5] }
 
-    if available_saves.include?("#{filename}")
-        print "\n#{filename}.json already exists, overwrite? (y/n): "
-        overwrite = gets.chomp.downcase
-        unless overwrite == "y"
-            print "\nOverwrite canceled\n"
-        end
+    if available_saves.include?(filename.to_s)
+      print "\n#{filename}.json already exists, overwrite? (y/n): "
+      overwrite = gets.chomp.downcase
+      print "\nOverwrite canceled\n" unless overwrite == 'y'
     end
     @fen.save(filename)
     print("\nGame saved to #{filename}.json\n")
@@ -89,8 +84,8 @@ class Board
     checkmate? && message = 'Checkmate'
     stalemate? && message = 'Draw: Stalemate'
     insufficient_material? && message = 'Draw: Insufficient material'
-    fifty_move_rule? && message = "Draw: 50 move rule"
-    repetition? && message = "Draw: Three-fold repetition"
+    fifty_move_rule? && message = 'Draw: 50 move rule'
+    repetition? && message = 'Draw: Three-fold repetition'
     message
   end
 
@@ -129,7 +124,7 @@ class Board
 
   def get_input
     input = gets.chomp
-    save_game if input.downcase == "/save"
+    save_game if input.downcase == '/save'
     [input.split('')[0].to_i, input.split('')[1].to_i]
   end
 

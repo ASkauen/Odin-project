@@ -30,6 +30,7 @@ class King < Piece
       legal << s_check if @board.empty_square?(s_check) || @board.enemy_piece?(@color, s_check)
     end
     return legal if once
+
     legal += legal_castle_moves unless in_check?
     legal - check_moves(legal)
   end
