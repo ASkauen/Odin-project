@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 
 require_relative './piece'
 
@@ -18,17 +19,17 @@ class King < Piece
     super(
       id,
       position,
-      board,
-      self
+      board
     )
   end
 
-  def legal_moves(pos = @position)
+  def legal_moves(once = false, pos = @position)
     legal = []
     @offsets.each do |offset|
       s_check = [(pos[0] + offset[0]), (pos[1] + offset[1])]
       legal << s_check if @board.empty_square?(s_check) || @board.enemy_piece?(@color, s_check)
     end
+    return legal if once
     legal += legal_castle_moves unless in_check?
     legal - check_moves(legal)
   end
@@ -48,6 +49,9 @@ class King < Piece
 
   def in_check?(pos = @position)
     enemy_pieces = @color == 'white' ? @board.black_pieces : @board.white_pieces
+    enemy_king = enemy_pieces.select { |p| p.id.downcase == 'k' }[0]
+    return true if enemy_king.legal_moves(true).include?(pos)
+
     enemy_pieces = enemy_pieces.reject { |p| p.id.downcase == 'k' }
     enemy_pieces.each do |piece|
       return true if piece.legal_moves.include?(pos)
@@ -57,12 +61,8 @@ class King < Piece
 
   def legal_castle_moves
     legal = []
-    fen_kingside = 'k'
-    fen_queenside = 'q'
-    if @color == 'white'
-      fen_kingside.upcase!
-      fen_queenside.upcase!
-    end
+    fen_kingside = @color == 'white' ? 'K' : 'k'
+    fen_queenside = @color == 'black' ? 'Q' : 'q'
     rank = @color == 'white' ? 1 : 8
     legal << [7, rank] if kingside_clear?(rank) && @board.fen.castling.include?(fen_kingside)
     legal << [3, rank] if queenside_clear?(rank) && @board.fen.castling.include?(fen_queenside)
@@ -101,8 +101,7 @@ class Queen < Piece
     super(
       id,
       position,
-      board,
-      self
+      board
     )
   end
 
@@ -134,8 +133,7 @@ class Rook < Piece
     super(
       id,
       position,
-      board,
-      self
+      board
     )
   end
 
@@ -155,9 +153,16 @@ class Rook < Piece
 end
 
 class Bishop < Piece
+  attr_reader :square_color
+
   def initialize(id, position, board)
     @position = position
     @color = 'kqrbnp'.include?(id) ? 'black' : 'white'
+    @square_color = if position[1].odd?
+                      position[0].odd? ? 'black' : 'white'
+                    else
+                      (position[0].even? ? 'black' : 'white')
+                    end
     @offsets = [
       [+1, -1],
       [+1, +1],
@@ -167,8 +172,7 @@ class Bishop < Piece
     super(
       id,
       position,
-      board,
-      self
+      board
     )
   end
 
@@ -204,8 +208,7 @@ class Knight < Piece
     super(
       id,
       position,
-      board,
-      self
+      board
     )
   end
 
@@ -229,9 +232,10 @@ class Pawn < Piece
     super(
       id,
       position,
-      board,
-      self
+      board
     )
+    base = @color == 'white' ? 0 : 5
+    @has_moved = true if @position[1] != base + 2
   end
 
   def legal_moves(pos = @position)
