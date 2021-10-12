@@ -1,8 +1,10 @@
 # frozen_string_literal: true
 
 require 'json'
+require_relative './resources'
 
 class Fen
+  include Resources
   attr_accessor :placement, :turn, :castling, :en_passant, :half_move, :full_move
 
   def initialize(board)
