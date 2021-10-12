@@ -54,6 +54,7 @@ class Board
       print "\n#{filename}.json already exists, overwrite? (y/n): "
       overwrite = gets.chomp.downcase
       print "\nOverwrite canceled\n" unless overwrite == 'y'
+      return
     end
     @fen.save(filename)
     print("\nGame saved to #{filename}.json\n")
