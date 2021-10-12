@@ -5,10 +5,9 @@ class Piece
   attr_accessor :position, :has_moved
   attr_reader :icon, :id, :color
 
-  def initialize(id, position, board, child)
+  def initialize(id, position, board)
     @id = id
     @board = board
-    @child = child
     @has_moved = false
     @position = position
     @icon = ICONS[id.to_sym]
@@ -58,20 +57,27 @@ class Piece
     moves = legal_moves
     moves -= pin_moves(moves)
     if moves.include?(to)
-      castle(to) if @id.downcase == 'k' && legal_castle_moves.include?(to)
-      ep_capture(to) if to == @board.fen.en_passant && @id.downcase == 'p'
-      @board.active_pieces.delete(@board.get_piece(to))
+      @board.fen.half_move += 1
+      special_moves(to)
+      @board.fen.full_move += 1 if @color == 'black'
       ep_square = get_ep_square(to)
       @position = to
       @has_moved = true
       promotion if @id.downcase == 'p'
       @board.update_board
+      @board.update_vars
       @board.print_board
       @board.fen.update_all(ep_square)
     else
       puts "Illegal move #{to}"
       false
     end
+  end
+
+  def special_moves(to)
+    castle(to) if @id.downcase == 'k' && legal_castle_moves.include?(to)
+    ep_capture(to) if to == @board.fen.en_passant && @id.downcase == 'p'
+    @board.fen.half_move = 0 if @board.active_pieces.delete(@board.get_piece(to)) || @id.downcase == 'p'
   end
 
   def castle(to)
