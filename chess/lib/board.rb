@@ -62,7 +62,7 @@ class Board
 
   def play
     print_board
-    puts "Enter '/save' to save the position"
+    puts "Enter '/save' to save the position, or 'exit' to quit."
     until message = game_over_message
       puts 'Check' if @white_king.in_check? || @black_king.in_check?
       puts "#{turn} to move."
@@ -125,6 +125,7 @@ class Board
   def get_input
     input = gets.chomp
     save_game if input.downcase == '/save'
+    exit if input.downcase == 'exit'
     [input.split('')[0].to_i, input.split('')[1].to_i]
   end
 
