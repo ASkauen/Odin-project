@@ -29,8 +29,9 @@ class Board
   end
 
   def play
-    until checkmate?
-      puts "Check" if @white_king.in_check? || @black_king.in_check?
+    until message = game_over_message
+      p @fen.castling, @white_king.has_moved
+      puts 'Check' if @white_king.in_check? || @black_king.in_check?
       puts "#{turn} to move."
       move_to = nil
       piece_to_move = nil
@@ -42,18 +43,26 @@ class Board
       piece_to_move.move(move_to)
       update_vars
     end
-    puts "Checkmate"
+    puts message
   end
 
-  def turn 
-    @fen.turn == 'w' ? "White" : "Black"
+  def game_over_message
+    message = nil
+    checkmate? && message = 'Checkmate'
+    stalemate? && message = 'Stalemate'
+    message
+  end
+
+  def turn
+    @fen.turn == 'w' ? 'White' : 'Black'
   end
 
   def get_move(piece)
-    input = ""
+    input = ''
     until piece.legal_moves.include?(input)
-      return nil if input != ""
-      puts("Select a square to move to (format: xy): ")
+      return nil if input != ''
+
+      puts('Select a square to move to (format: xy): ')
       input = get_input
       get_piece(input)
     end
@@ -61,17 +70,17 @@ class Board
   end
 
   def select_piece
-    input = ""
+    input = ''
     until valid_piece?(input)
-      until valid_piece?(input) 
-        puts "Invalid input." if input != ""
-        puts("Select a piece to move (format: xy): ")
+      until valid_piece?(input)
+        puts 'Invalid input.' if input != ''
+        puts('Select a piece to move (format: xy): ')
         input = get_input
       end
       moves = get_piece(input).legal_moves
       if (moves - get_piece(input).pin_moves(moves)).empty?
-        puts "No legal moves." 
-        input = ""
+        puts 'No legal moves.'
+        input = ''
       end
     end
     get_piece(input)
@@ -79,16 +88,24 @@ class Board
 
   def get_input
     input = gets.chomp
-    [input.split("")[0].to_i, input.split("")[1].to_i]
+    [input.split('')[0].to_i, input.split('')[1].to_i]
   end
 
   def valid_piece?(input)
-    valid_inputs = @fen.turn == 'w' ? @white_pieces.map {|p| p.position} : @black_pieces.map {|p| p.position}
+    valid_inputs = @fen.turn == 'w' ? @white_pieces.map(&:position) : @black_pieces.map(&:position)
     valid_inputs.include?(input)
   end
 
   def get_piece(pos)
     (@active_pieces.select { |p| p.position == pos })[0]
+  end
+
+  def stalemate?
+    if @fen.turn == 'w'
+      @white_moves.values.flatten.empty?
+    else
+      @black_moves.values.flatten.empty?
+    end
   end
 
   def checkmate?
