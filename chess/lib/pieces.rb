@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 
 require_relative './piece'
 
@@ -49,7 +48,7 @@ class King < Piece
 
   def in_check?(pos = @position)
     enemy_pieces = @color == 'white' ? @board.black_pieces : @board.white_pieces
-    enemy_pieces = enemy_pieces.reject {|p| p.id.downcase == 'k'}
+    enemy_pieces = enemy_pieces.reject { |p| p.id.downcase == 'k' }
     enemy_pieces.each do |piece|
       return true if piece.legal_moves.include?(pos)
     end
@@ -58,9 +57,15 @@ class King < Piece
 
   def legal_castle_moves
     legal = []
+    fen_kingside = 'k'
+    fen_queenside = 'q'
+    if @color == 'white'
+      fen_kingside.upcase!
+      fen_queenside.upcase!
+    end
     rank = @color == 'white' ? 1 : 8
-    legal << [7, rank] if kingside_clear?(rank)
-    legal << [3, rank] if queenside_clear?(rank)
+    legal << [7, rank] if kingside_clear?(rank) && @board.fen.castling.include?(fen_kingside)
+    legal << [3, rank] if queenside_clear?(rank) && @board.fen.castling.include?(fen_queenside)
     legal
   end
 
@@ -247,23 +252,19 @@ class Pawn < Piece
   end
 
   def promotion
-    out = " "
+    out = ' '
     if @color == 'white'
-      if @position[1] == 8
-        out = promotion_input
-      end
-    else
-      if @position[1] == 1
-        out = promotion_input
-      end
+      out = promotion_input if @position[1] == 8
+    elsif @position[1] == 1
+      out = promotion_input
     end
-    promote_piece(out) if out != " "
+    promote_piece(out) if out != ' '
   end
 
   def promotion_input
-    user_input = " "
+    user_input = ' '
     until 'qrkb'.include?(user_input)
-      puts "Promote to (Q)ueen, (R)ook, (K)night or (B)ishop?:"
+      puts 'Promote to (Q)ueen, (R)ook, (K)night or (B)ishop?:'
       user_input = gets.chomp.downcase
     end
     user_input
@@ -273,14 +274,14 @@ class Pawn < Piece
     pos = @position
     id = @color == 'white' ? input.upcase : input
     case input
-    when "q"
+    when 'q'
       piece = Queen.new(id, pos, @board)
-    when "r"
+    when 'r'
       piece = Rook.new(id, pos, @board)
-    when "k"
+    when 'k'
       id = @color == 'white' ? 'N' : 'n'
       piece = Knight.new(id, pos, @board)
-    when "b"
+    when 'b'
       piece = Bishop.new(id, pos, @board)
     end
     @board.active_pieces.delete(@board.get_piece(pos))
