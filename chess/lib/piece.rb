@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 class Piece
   include Resources
   attr_accessor :position, :has_moved
@@ -43,7 +44,7 @@ class Piece
       @board.update_board
       @board.update_vars
       enemy_moves = []
-      enemy_pieces.each {|p| p.legal_moves.each {|m| enemy_moves << m}}
+      enemy_pieces.each { |p| p.legal_moves.each { |m| enemy_moves << m } }
       pinned << move if king.in_check?
       @position = temp
       @board.active_pieces << piece_at_move_square if piece_at_move_square
@@ -57,7 +58,7 @@ class Piece
     moves = legal_moves
     moves -= pin_moves(moves)
     if moves.include?(to)
-      castle(to) if @id.downcase   == 'k' && legal_castle_moves.include?(to)
+      castle(to) if @id.downcase == 'k' && legal_castle_moves.include?(to)
       ep_capture(to) if to == @board.fen.en_passant && @id.downcase == 'p'
       @board.active_pieces.delete(@board.get_piece(to))
       ep_square = get_ep_square(to)
