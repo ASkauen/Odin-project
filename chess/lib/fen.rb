@@ -16,10 +16,10 @@ class Fen
   end
 
   def set_rooks
-    @QR = @board.get_piece([1, 1])
-    @KR = @board.get_piece([8, 1])
-    @qr = @board.get_piece([8, 1])
-    @kr = @board.get_piece([8, 8])
+    @QR = @board.get_piece([1, 1]) || nil
+    @KR = @board.get_piece([8, 1]) || nil
+    @qr = @board.get_piece([8, 1]) || nil
+    @kr = @board.get_piece([8, 8]) || nil
   end
 
   def load(file_name)
@@ -30,9 +30,29 @@ class Fen
     file.close
   end
 
+  def get_save_name()
+    available_saves = Dir.entries("./saves").select {|s| s.end_with?(".json")}.map {|s| s = s[0...-5]}
+    if available_saves.empty?
+        print("\nNo save files found, starting new game\n")
+        return false
+    end
+    save_to_load = ""
+
+    print("\nAvailable saves:\n")
+    puts available_saves
+
+    until available_saves.include?(save_to_load)
+        print("\nChoose a save to load: ")
+        save_to_load = gets.chomp.downcase
+        print "\nSave not found\n" unless available_saves.include?(save_to_load)
+    end
+
+    return save_to_load.downcase
+end
+
   def save(file_name)
     out = {}
-    instance_variables.each do |var|
+    [:@placement, :@turn, :@castling, :@en_passant, :@half_move, :@full_move].each do |var|
       out[var] = instance_variable_get var
     end
     file = File.new("./saves/#{file_name}.json", 'w')
@@ -41,19 +61,18 @@ class Fen
   end
 
   def update_all(ep_square)
+    enemy_pieces = @turn == 'w' ? @board.black_pieces : @board.white_pieces
     update_turn
-    update_full_move
     update_placement
     update_en_passant(ep_square)
     update_castling
+    ep_caturable = enemy_pieces.map {|p| p.legal_moves.include?(en_passant)}.any?
+    fen_string = [placement, @turn, @castling, ep_caturable].join(" ")
+    @board.previous_positions << fen_string
   end
 
   def update_turn
     @turn = @turn == 'w' ? 'b' : 'w'
-  end
-
-  def update_full_move
-    @full_move += 1
   end
 
   def update_placement
@@ -87,6 +106,6 @@ class Fen
     @castling = @castling.gsub('kq', '') if @board.black_king.has_moved
     @castling = @castling.gsub('q', '') if @qr.has_moved
     @castling = @castling.gsub('k', '') if @kr.has_moved
-
+    @castling = '-' if @castling == ''
   end
 end
